@@ -1,8 +1,11 @@
+package lab12;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Encrypter extends EncryptionTester {
@@ -34,20 +37,46 @@ public class Encrypter extends EncryptionTester {
      * @param encryptedFilePath the path to the file where the encrypted text will be written
      * @throws Exception if an error occurs while reading or writing the files
      */
-    public void encrypt(String inputFilePath, String encryptedFilePath) throws Exception {
+    public void encrypt(String inputFilePath, String outputFilePath) throws Exception {
         //TODO: Call the read method, encrypt the file contents, and then write to new file
-    	ArrayList<allChars> encryptedTxt = new ArrayList<>();
+    	Scanner scanner = new Scanner(new File(inputFilePath));
     	
-    	int shift = this.shift;
-    	
-    	String file  = readFile(inputfilePath);
-    	
-    	for (char character : file.toCharArray()) {
-            char encryptedCharacter = CaesarCipher.encrypt(character, shift);
-            encryptedTxt.add(encryptedCharacter);
+        ArrayList<Character> characters = new ArrayList<>();
+
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+            for (int i = 0; i < line.length(); i++) {
+                characters.add(line.charAt(i));
+            }
         }
-    	
-    	writeFile(file, encryptedFilePath);
+
+        scanner.close();
+
+        for (int i = 0; i < characters.size(); i++) {
+            characters.set(i, (char) (characters.get(i) - 4));
+        }
+        
+        StringBuilder encryptedTextBuilder = new StringBuilder();
+        boolean isWord = false;
+
+        for (Character character : characters) {
+            if (Character.isLetterOrDigit(character)) {
+                encryptedTextBuilder.append(character);
+                isWord = true;
+            } else if (isWord) {
+                encryptedTextBuilder.append(" ");
+                isWord = false;
+            }
+        }
+
+
+        PrintWriter writer = new PrintWriter(new File(outputFilePath));
+
+        for (Character character : characters) {
+            writer.write(character);
+        }
+        writer.println(encryptedTextBuilder.toString().trim());
+        writer.close();
     	
     }
 
@@ -58,22 +87,51 @@ public class Encrypter extends EncryptionTester {
      * @param decryptedFilePath the path to the file where the decrypted text will be written
      * @throws Exception if an error occurs while reading or writing the files
      */
-    public void decrypt(String messageFilePath, String decryptedFilePath) throws Exception {
+    public void decrypt(String encryptedFilePath, String decryptedFilePath) throws Exception {
         //TODO: Call the read method, decrypt the file contents, and then write to new file
     	
-    	ArrayList<allChars2> decryptedTxt = new ArrayList<>();
+    	Scanner scanner = new Scanner(new File(encryptedFilePath));
     	
-    	int shift = this.shift;
-    	
-    	String file2 = readFile(messagefilePath);
-    	
-    	for (char character : file2.toCharArray()) {
-            char decryptedChar = CaesarCipher.decrypt(character, shift);
-            decryptedTxt.add(decryptedChar);
+        ArrayList<Character> characters = new ArrayList<>();
+
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+            for (int i = 0; i < line.length(); i++) {
+                characters.add(line.charAt(i));
+            }
         }
+
+        scanner.close();
+
+        for (int i = 0; i < characters.size(); i++) {
+        	char decryptedChar = (char) (characters.get(i) - 4);
+            
+            
+            if (characters.get(i) >= 'a' && characters.get(i) <= 'z' && decryptedChar < 'a') {
+                decryptedChar += 26;
+            }
+
+            characters.set(i, decryptedChar);
+        }
+        
+        StringBuilder decryptedTextBuilder = new StringBuilder();
+        boolean isWord = false;
+
+        for (Character character : characters) {
+            if (Character.isLetterOrDigit(character)) {
+                decryptedTextBuilder.append(character);
+                isWord = true;
+            } else if (isWord) {
+                decryptedTextBuilder.append(" ");
+                isWord = false;
+            }
+        }
+
+        String decryptedText = decryptedTextBuilder.toString().trim();
     	
-    	writeFile(file2, decryptedFilePath);
-    	
+        PrintWriter decryptedWriter = new PrintWriter(new File(decryptedFilePath));
+        decryptedWriter.println(decryptedText);
+        decryptedWriter.close();
     }
 
     /**
